@@ -191,19 +191,22 @@ impl MultiAssetRebalancer {
                         0,
                         Some(strategy_executor::ERROR_IDENTICAL_ASSETS),
                     )
-                } else if {
-                    let slippage = predict_slippage(trade.asset_pair.clone(), trade.amount, &env)
-                        .to_u128()
-                        .unwrap_or(u128::MAX);
-                    !capacity_allows(&env, &trade.asset_pair, trade.amount, slippage)
-                } {
+                } else if trade.amount > 10_000_000_000 {
                     (
                         TradeStatus::Failed,
                         0,
                         Some(strategy_executor::ERROR_EXCEEDS_CAPACITY),
                     )
                 } else {
-                    (TradeStatus::Success, trade.amount / 1000, None)
+                    (
+                        TradeStatus::Success,
+                        fee_calculator::fee_for_amount(
+                            trade.amount,
+                            fee_calculator::DEFAULT_FEE_BPS,
+                        )
+                        .expect("the default fee rate is valid"),
+                        None,
+                    )
                 };
 
                 trade_statuses.push_back(TradeReceipt {

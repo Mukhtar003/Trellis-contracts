@@ -1,8 +1,7 @@
+use crate::fee_calculator::{fee_for_amount, DEFAULT_FEE_BPS};
 use crate::logging::log_trade;
 use crate::slippage_predictor::predict_slippage;
-use crate::{
-    capacity_allows, ExecutionReport, ExecutionStrategy, Trade, TradeReceipt, TradeStatus,
-};
+use crate::{ExecutionReport, ExecutionStrategy, Trade, TradeReceipt, TradeStatus};
 use soroban_sdk::{Env, Vec, U256};
 
 pub const ERROR_ZERO_AMOUNT: u32 = 1;
@@ -59,7 +58,8 @@ pub fn execute_strategy(
             continue;
         }
 
-        let fee = trade.amount / 1000;
+        let fee =
+            fee_for_amount(trade.amount, DEFAULT_FEE_BPS).expect("the default fee rate is valid");
         total_fees = total_fees.saturating_add(fee);
 
         total_slippage = total_slippage.saturating_add(slippage_val);
